@@ -135,6 +135,7 @@ def convert(config):
                         print("After being fed into G: ", coded_sp_converted.shape)
 
                         # convert back to wav
+                        # 即提取了f0 mcep 以及 ap特征，但只转换mcep特征，其余两个特征用于后续的语音合成
                         wav_transformed = world_speech_synthesis(f0=f0_converted,
                                                                  coded_sp=coded_sp_converted,
                                                                  ap=ap,

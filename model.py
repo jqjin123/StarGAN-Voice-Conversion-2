@@ -210,6 +210,7 @@ class Discriminator(nn.Module):
 
 # Just for testing shapes of architecture.
 if __name__ == '__main__':
+
     train_dir = '../data/VCC2018-Data/mc/train'
     num_speakers = 4
     speakers_using = ['VCC2SM1', 'VCC2SM2', 'VCC2SF1', 'VCC2SF2']
@@ -231,6 +232,15 @@ if __name__ == '__main__':
     spk_c_cat = to_categorical(spk_c, num_speakers)
     spk_c_trg = torch.FloatTensor(spk_c_cat)
 
+    '''
+    spk_c_cat = to_categorical([2,3], 4)
+    spk_c_trg = torch.FloatTensor(spk_c_cat)
+    print(spk_c_trg)
+
+    tensor([[0., 0., 1., 0.],
+        [0., 0., 0., 1.]])
+    '''
+
     mc_real = mc_real.to(device)              # Input mc.
     spk_c_org = spk_c_org.to(device)          # Original spk acc conditioning.
     spk_c_trg = spk_c_trg.to(device)          # Target spk conditioning.
@@ -249,3 +259,51 @@ if __name__ == '__main__':
     mc_fake = generator(mc_real, spk_c_trg)
     print(f'Shape out: {mc_fake.shape}')
     print('------------------------')
+
+###############################################################################################
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    num_speakers = 4
+    generator = Generator(num_speakers=num_speakers).to(device)
+    discriminator = Discriminator(num_speakers=num_speakers).to(device)
+
+    mc_real = torch.rand(2, 36, 256)
+    spk_c_org = torch.FloatTensor([[1,0,0,0], [0,0,1,0]])
+    mc_real.unsqueeze_(1)  # (B, D, T) -> (B, 1, D, T) for conv2d
+
+    spk_c = np.random.randint(0, num_speakers, size=mc_real.size(0))
+    spk_c_cat = to_categorical(spk_c, num_speakers)
+    spk_c_trg = torch.FloatTensor(spk_c_cat)
+
+    mc_real = mc_real.to(device)  # Input mc.
+    spk_c_org = spk_c_org.to(device)  # Original spk acc conditioning.
+    spk_c_trg = spk_c_trg.to(device)  # Target spk conditioning.
+
+    print('------------------------')
+    print('Testing Discriminator')
+    print('-------------------------')
+    print(f'Shape in: {mc_real.shape}')
+    dis_real = discriminator(mc_real, spk_c_org, spk_c_trg)
+    print(f'Shape out: {dis_real.shape}')
+    print('------------------------')
+
+    print('Testing Generator')
+    print('-------------------------')
+    print(f'Shape in: {mc_real.shape}')
+    mc_fake = generator(mc_real, spk_c_trg)
+    print(f'Shape out: {mc_fake.shape}')
+    print('------------------------')
+
+    '''
+    ------------------------
+    Testing Discriminator
+    -------------------------
+    Shape in: torch.Size([2, 1, 36, 256])
+    Shape out: torch.Size([2])
+    ------------------------
+    Testing Generator
+    -------------------------
+    Shape in: torch.Size([2, 1, 36, 256])
+    Shape out: torch.Size([2, 1, 36, 256])
+    ------------------------
+    '''
+
